@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef } from "react";
 import { IDENTITY, Mat, Move, apply, ease, mul, rotation, scramble, solution } from "@/lib/cubeMoves";
 
 const S = 56; // cubie size in px
@@ -34,24 +34,7 @@ export default function Cube({ size = S }: { size?: number }) {
   const timerRef = useRef<HTMLSpanElement>(null);
   const cubieRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  const reduced = useSyncExternalStore(
-    (cb) => {
-      const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-      mq.addEventListener("change", cb);
-      return () => mq.removeEventListener("change", cb);
-    },
-    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    () => false,
-  );
-  const [forced, setForced] = useState(false);
-  const animate = !reduced || forced;
-
   useEffect(() => {
-    if (!animate) {
-      timerRef.current!.textContent = "0:20.00";
-      return;
-    }
-
     const scr = scramble();
     const seq: Move[] = [...scr, ...solution(scr)];
     const total = IDLE + 12 * SCR + PAUSE + 12 * SOL + HOLD;
@@ -117,13 +100,13 @@ export default function Cube({ size = S }: { size?: number }) {
     document.addEventListener("visibilitychange", vis);
     run();
     return () => { stop(); io.disconnect(); document.removeEventListener("visibilitychange", vis); };
-  }, [size, animate]);
+  }, [size]);
 
   const cubies = home();
   return (
     <div ref={rootRef} role="img" aria-label="A 3x3 speedcube scrambling, then solving while a timer counts down from 1:00.00 to 0:20.00"
-      className="flex flex-col items-center gap-10 select-none">
-      <div style={{ perspective: size * 16, width: size * 3, height: size * 3 }} className="relative">
+      className="flex flex-col items-center gap-6 select-none">
+      <div style={{ perspective: size * 16, width: size * 3, height: size * 3, margin: `${size * 0.9}px 0 ${size * 1.2}px` }} className="relative">
         <div ref={spinRef} className="absolute inset-0" style={{ transformStyle: "preserve-3d", transform: "rotateX(-28deg) rotateY(-38deg)" }}>
           {cubies.map((c, i) => (
             <div key={i} ref={(el) => { cubieRefs.current[i] = el; }}
@@ -146,15 +129,9 @@ export default function Cube({ size = S }: { size?: number }) {
           ))}
         </div>
       </div>
-      <span ref={timerRef} className="font-mono text-4xl tabular-nums tracking-tight" aria-hidden="true">
+      <span ref={timerRef} className="relative z-10 font-mono text-4xl tabular-nums tracking-tight" aria-hidden="true">
         1:00.00
       </span>
-      {!animate && (
-        <button type="button" onClick={() => setForced(true)}
-          className="border border-ink px-4 py-2 font-mono text-xs uppercase tracking-wide hover:bg-ink hover:text-paper">
-          Play animation
-        </button>
-      )}
     </div>
   );
 }
