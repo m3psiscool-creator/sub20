@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { IDENTITY, Mat, Move, apply, ease, mul, rotation, scramble, solution } from "@/lib/cubeMoves";
 
 const S = 56; // cubie size in px
@@ -34,9 +34,20 @@ export default function Cube({ size = S }: { size?: number }) {
   const timerRef = useRef<HTMLSpanElement>(null);
   const cubieRefs = useRef<(HTMLDivElement | null)[]>([]);
 
+  const reduced = useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+      mq.addEventListener("change", cb);
+      return () => mq.removeEventListener("change", cb);
+    },
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    () => false,
+  );
+  const [forced, setForced] = useState(false);
+  const animate = !reduced || forced;
+
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mq.matches) {
+    if (!animate) {
       timerRef.current!.textContent = "0:20.00";
       return;
     }
@@ -106,7 +117,7 @@ export default function Cube({ size = S }: { size?: number }) {
     document.addEventListener("visibilitychange", vis);
     run();
     return () => { stop(); io.disconnect(); document.removeEventListener("visibilitychange", vis); };
-  }, [size]);
+  }, [size, animate]);
 
   const cubies = home();
   return (
@@ -138,6 +149,12 @@ export default function Cube({ size = S }: { size?: number }) {
       <span ref={timerRef} className="font-mono text-4xl tabular-nums tracking-tight" aria-hidden="true">
         1:00.00
       </span>
+      {!animate && (
+        <button type="button" onClick={() => setForced(true)}
+          className="border border-ink px-4 py-2 font-mono text-xs uppercase tracking-wide hover:bg-ink hover:text-paper">
+          Play animation
+        </button>
+      )}
     </div>
   );
 }
