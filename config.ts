@@ -1,8 +1,8 @@
 // Single switch for the whole site: flip to true when applications open.
-export const APPLICATIONS_OPEN = false;
+export const APPLICATIONS_OPEN = true;
 
-// TODO (owners): where applicants go once open, e.g. a form URL or mailto link.
-export const APPLY_HREF = "";
+// Google Form for Sub20 coaching applications.
+export const APPLY_HREF = "https://docs.google.com/forms/d/e/1FAIpQLSf45GUnOPLyfdLLhfuK7L7MQIwqDlrCjzIqjRr9ZBD4ptO8xw/viewform?usp=publish-editor";
 
 // TODO (owners): notify mechanism while closed (email link or free form service).
 // Leave empty to hide the "Get notified" links.
